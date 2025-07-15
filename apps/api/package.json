@@ -1,0 +1,40 @@
+{
+  "name": "@otaku-secretary/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "esbuild --bundle --sourcemap --format=esm --platform=node --target=node20 --outfile=dist/index.js src/index.ts",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules",
+    "db:migrate": "wrangler d1 migrations apply otaku-secretary-db",
+    "db:seed": "tsx seeds/index.ts"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@hono/zod-validator": "^0.5.0",
+    "@lucia-auth/adapter-sqlite": "^3.0.2",
+    "@otaku-secretary/database": "workspace:*",
+    "@otaku-secretary/shared": "workspace:*",
+    "drizzle-orm": "^0.29.1",
+    "hono": "^3.11.12",
+    "lucia": "^3.2.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@otaku-secretary/config": "workspace:*",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "esbuild": "^0.19.10",
+    "eslint": "^8.55.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.3",
+    "wrangler": "^3.22.1"
+  }
+}

@@ -1,0 +1,19 @@
+name = "otaku-secretary-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[env.development]
+name = "otaku-secretary-api-dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "otaku-secretary"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "00000000000000000000000000000000"
+preview_id = "00000000000000000000000000000000"
+
+[vars]
+ENVIRONMENT = "development"
