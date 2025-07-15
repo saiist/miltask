@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import authRoutes from '../auth/routes'
 import { authMiddleware } from '../auth/middleware'
+import type { User, Session } from 'lucia'
 
 export interface Env {
   DB: D1Database
@@ -10,7 +11,13 @@ export interface Env {
   [key: string]: any
 }
 
-const app = new Hono<{ Bindings: Env }>()
+interface Variables {
+  user: User | null
+  session: Session | null
+  [key: string]: any
+}
+
+const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Middleware
 app.use('*', cors({
@@ -31,6 +38,10 @@ app.route('/auth', authRoutes)
 // Protected API routes
 app.get('/api/tasks', authMiddleware, async (c) => {
   const user = c.get('user')
+  if (!user) {
+    return c.json({ error: '認証が必要です' }, 401)
+  }
+  
   return c.json({
     tasks: [
       {

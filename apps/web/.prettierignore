@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Production
+dist/
+build/
+
+# Generated files
+.vite/
+*.log
+
+# Config files
+*.json
+*.md

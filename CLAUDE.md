@@ -27,10 +27,8 @@ pnpm format                 # Format code with Prettier
 
 ### Database
 ```bash
-pnpm db:migrate             # Run database migrations (Drizzle)
+pnpm db:migrate             # Run database migrations
 pnpm db:seed                # Seed database with test data
-pnpm --filter @otaku-secretary/database generate    # Generate Drizzle schemas
-pnpm --filter @otaku-secretary/database studio      # Open Drizzle Studio
 ```
 
 ### Deployment
@@ -44,12 +42,12 @@ pnpm clean                  # Clean build artifacts and node_modules
 ### Monorepo Structure
 - **`apps/`** - Applications (web React app, API server, admin dashboard, landing page)
 - **`packages/`** - Shared libraries (UI components, types, database schemas, utilities)
-- **`tools/`** - Development tools and generators
 - **`docs/`** - Documentation including comprehensive product specification
 
 ### Tech Stack
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, TanStack Query, Zustand
 - **Backend**: Cloudflare Workers, Hono framework, Drizzle ORM, Cloudflare D1 (SQLite)
+- **Authentication**: Lucia Auth v3 with Scrypt password hashing
 - **Validation**: Zod schemas in `packages/shared`
 - **Testing**: Vitest, Testing Library
 - **Development**: Turborepo, pnpm workspaces, ESLint, Prettier, Storybook
@@ -60,6 +58,27 @@ pnpm clean                  # Clean build artifacts and node_modules
 - **`@otaku-secretary/database`** - Drizzle ORM schemas and migrations
 - **`@otaku-secretary/api-client`** - HTTP client utilities using Ky
 - **`@otaku-secretary/config`** - Shared ESLint, TypeScript, Prettier configurations
+
+## Authentication System
+
+The application uses **Lucia Auth v3** with the following setup:
+
+### Database Schema
+- **users** - User accounts (id, email, username, hashed_password)
+- **sessions** - User sessions with expiration
+- **oauth_accounts** - Future OAuth integration support
+
+### API Endpoints
+- `POST /auth/signup` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
+- `GET /auth/me` - Get current user info
+
+### Authentication Flow
+1. Passwords are hashed using **Scrypt** (not Argon2 due to Workers limitations)
+2. Sessions are managed via **HTTPOnly cookies**
+3. Session validation is handled by middleware
+4. D1 database stores user and session data
 
 ## Development Patterns
 
@@ -90,7 +109,7 @@ The application manages these main entities (see `packages/shared/src/types/mode
 ## Configuration Notes
 
 ### Environment Setup
-- Node.js 20+ (see `.nvmrc`)
+- Node.js 20+ (required)
 - pnpm 8+ as package manager
 - Cloudflare Workers for API deployment
 
@@ -107,6 +126,26 @@ The application manages these main entities (see `packages/shared/src/types/mode
 4. Type checking and linting run across all packages
 5. Tests should be added for new features in respective packages
 
+### Important Notes
+
+#### Cloudflare Workers Limitations
+- No Node.js APIs available
+- Use Web APIs and Cloudflare-specific APIs
+- Bundle size limitations apply
+- Stateless execution environment
+
+#### Authentication Security
+- HTTPOnly cookies for session management
+- Scrypt for password hashing (Workers-compatible)
+- CORS configured for frontend domain
+- Session expiration and cleanup
+
+#### Monorepo Conventions
+- All packages use TypeScript
+- Shared configurations in `packages/config`
+- Cross-package imports use workspace protocol
+- Turborepo handles build dependencies
+
 ## Product Context
 
-This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The project is currently in Phase 0 (infrastructure setup) with core features to be implemented.
+This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). The project is currently in Phase 0 (infrastructure setup) with core features to be implemented.

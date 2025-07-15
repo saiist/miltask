@@ -1,9 +1,16 @@
 import { Context, Next } from 'hono'
 import { initializeLucia } from './lucia'
 import type { Env } from '../routes/index'
+import type { User, Session } from 'lucia'
+
+interface Variables {
+  user: User | null
+  session: Session | null
+  [key: string]: any
+}
 
 export async function authMiddleware(
-  c: Context<{ Bindings: Env }>,
+  c: Context<{ Bindings: Env; Variables: Variables }>,
   next: Next
 ) {
   const lucia = initializeLucia(c.env)
@@ -40,7 +47,7 @@ export async function authMiddleware(
 }
 
 export function optionalAuthMiddleware(
-  c: Context<{ Bindings: Env }>,
+  c: Context<{ Bindings: Env; Variables: Variables }>,
   next: Next
 ) {
   const lucia = initializeLucia(c.env)
