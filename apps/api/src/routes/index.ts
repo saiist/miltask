@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import authRoutes from '../auth/routes'
+import { authMiddleware } from '../auth/middleware'
 
 export interface Env {
   DB: D1Database
@@ -23,16 +25,20 @@ app.get('/health', (c) => c.json({
   timestamp: new Date().toISOString()
 }))
 
-// API routes
-app.get('/api/tasks', async (c) => {
-  // TODO: Implement task list
+// Auth routes
+app.route('/auth', authRoutes)
+
+// Protected API routes
+app.get('/api/tasks', authMiddleware, async (c) => {
+  const user = c.get('user')
   return c.json({
     tasks: [
       {
         id: '1',
         title: 'サンプルタスク',
         type: 'anime',
-        completed: false
+        completed: false,
+        userId: user.id
       }
     ]
   })

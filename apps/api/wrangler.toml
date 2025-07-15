@@ -7,7 +7,7 @@ name = "otaku-secretary-api-dev"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "otaku-secretary"
+database_name = "otaku-secretary-db"
 database_id = "00000000-0000-0000-0000-000000000000"
 
 [[kv_namespaces]]
