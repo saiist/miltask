@@ -110,10 +110,12 @@ The application uses **Lucia Auth v3** with the following setup:
 - **shadcn/ui** components library with Radix UI primitives
 - **Tailwind CSS** for styling with design system tokens
 - **Component Structure**:
-  - `/src/components/ui/` - shadcn/ui components (accordion, button, card, etc.)
-  - `/src/components/` - Application-specific components (Layout, auth-form, theme-provider)
+  - `/src/components/ui/` - shadcn/ui components (button, card, switch, checkbox, select, etc.)
+  - `/src/components/` - Application-specific components (Layout, auth-form, theme-provider, NotificationCenter)
+  - `/src/components/modals/` - Feature-specific modal components (add-task, add-anime, add-game)
+  - `/src/pages/` - Route components (Dashboard, NotificationSettings)
+  - `/src/hooks/` - Custom React hooks (use-auth, use-tasks, use-toast)
   - `/src/lib/utils.ts` - Utility functions including className merging
-  - `/src/hooks/` - Custom React hooks
 - **Configuration**:
   - `components.json` - shadcn/ui configuration
   - `tailwind.config.ts` - Tailwind with design tokens and Japanese color scheme
@@ -203,14 +205,29 @@ The application manages these main entities with full database implementation:
 - **Dashboard Implementation** with glassmorphism design
   - Statistics cards, floating star animations, beautiful UI
   - Modal components for adding tasks, anime, and games
-  - Full integration with authentication system
+  - Filter functionality for tasks, anime, and games with status-based filtering
+  - Tabbed interface for different content types (overview, tasks, anime, games)
+  - Full integration with authentication system and real-time API data
+- **Notification System** with comprehensive functionality
+  - **Notification Center**: Sheet-based sliding panel with real-time notifications
+    - Date-grouped notification display (今日/昨日/specific dates)
+    - 5 notification types: reminders, new anime, achievements, books, game resets
+    - Interactive features: mark as read, delete, unread count badges
+    - Integrated into dashboard header with Bell icon trigger
+  - **Notification Settings Page**: Comprehensive preferences management
+    - Browser notification permission handling and status display
+    - Granular notification preferences (anime, games, tasks, book releases)
+    - Reminder timing configuration (1h, 3h, 1 day before)
+    - Daily task notification time selection
+    - Consistent glassmorphism design matching dashboard
 - **Component Library** complete shadcn/ui integration with Japanese language support
 - **API Client** package with full service layer integration
 
 ### Current Routes
 - `/` - Redirects to dashboard (protected)
 - `/login` - Authentication form (public route)
-- `/dashboard` - Main dashboard with task/anime/game management (protected)
+- `/dashboard` - Main dashboard with task/anime/game management and notification center (protected)
+- `/notifications` - Notification settings page (protected)
 
 ### Authentication Flow Implementation
 - **Frontend**: Complete auth forms with validation, error handling, toast notifications
@@ -369,27 +386,102 @@ The web application (`apps/web`) is built with React 19 and uses traditional Rea
 4. **Frontend Tests**: Add Vitest tests for components and hooks
 
 #### Integration Completed
-The application now has full end-to-end integration:
+The application now has comprehensive end-to-end integration:
 1. ✅ API client services implemented in `packages/api-client`
 2. ✅ Auth forms connected to backend endpoints with error handling
-3. ✅ Dashboard UI implemented with glassmorphism design and modal components
+3. ✅ Dashboard UI with glassmorphism design, filtering, and modal components
 4. ✅ Real-time state management with TanStack Query and authentication hooks
+5. ✅ Notification settings page with browser notification API integration
+6. ✅ Navigation flow using React Router v7 with proper redirects
+7. ✅ Consistent shadcn/ui component usage across all pages (including Sheet-based notification center)
+8. ✅ Task management with real API integration (create, complete, filter)
+9. ✅ Notification center implementation with Sheet component and mock data system
 
-The next phase involves connecting the dashboard modals to actual data management APIs and implementing the core task/media tracking functionality.
+### Current Development Patterns
+
+#### Navigation and Routing
+- **Header-based Navigation**: 
+  - Bell icon → Notification center (Sheet panel)
+  - Settings (gear icon) → Notification settings page
+- **Breadcrumb Navigation**: Back button on settings page → Dashboard
+- **Route Protection**: All main pages require authentication
+- **Redirect Strategy**: Root path (`/`) automatically redirects to `/dashboard`
+
+#### State Management Patterns
+```typescript
+// Task management with real-time updates
+const { data: todayTasksData, isLoading } = useTodayTasks()
+const createTaskMutation = useCreateTask()
+const completeTaskMutation = useCompleteTask()
+
+// Filter state management (local state)
+const [taskFilter, setTaskFilter] = useState<"all" | "completed" | "pending">("all")
+const [animeFilter, setAnimeFilter] = useState<"all" | "watching" | "completed" | "planned">("all")
+
+// Settings state (local state with localStorage persistence planned)
+const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false)
+```
+
+#### UI Component Patterns
+- **Glassmorphism Cards**: `backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl`
+- **Interactive Elements**: Hover effects with `hover:translate-y-[-2px] transition-transform`
+- **Consistent Icons**: Lucide React icons with 4-5px sizes and thematic colors
+- **Filter Buttons**: Pill-shaped buttons with active state styling
+- **Modal Components**: Centralized modal system with form validation
+- **Sheet Components**: Side panels for notification center using Radix UI primitives
+- **Notification UI**: Date-grouped lists with unread badges and interactive controls
+
+The next phase involves expanding media tracking capabilities and implementing more advanced notification scheduling features.
 
 ## Product Context
 
 This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). 
 
 ### Current Implementation Status
-The project has completed the core authentication and dashboard implementation:
+The project has completed the core authentication, dashboard, and settings functionality:
 - ✅ **Phase 0**: Authentication system, database schema, API foundation
 - ✅ **Phase 1a**: Core task management API and database implementation  
 - ✅ **Phase 1b**: Game integration system with popular titles (FGO, Genshin, etc.)
 - ✅ **Phase 1c**: Recurring task templates and automation
 - ✅ **Phase 2a**: Frontend authentication integration with complete API client
-- ✅ **Phase 2b**: Dashboard UI implementation with glassmorphism design
+- ✅ **Phase 2b**: Dashboard UI implementation with glassmorphism design and filtering
 - ✅ **Phase 2c**: Modal components for adding tasks, anime, and games
-- 🔄 **Phase 3**: Data management and real-time functionality (next steps)
+- ✅ **Phase 2d**: Notification settings page with browser notification API integration
+- ✅ **Phase 2e**: Navigation flow between dashboard and settings with header-based routing
+- ✅ **Phase 2f**: Notification center implementation with Sheet-based UI and mock data system
+- 🔄 **Phase 3**: Enhanced data management, real-time functionality, and notification backend integration (next steps)
 
-Both backend and frontend are now fully integrated with a beautiful, functional user interface. The authentication flow works end-to-end, and the dashboard provides a complete foundation for task and media management.
+The application now provides a complete user experience with authentication, task management, filtering capabilities, user preferences management, and a modern notification center. The glassmorphism design is consistently applied across all pages and components.
+
+## Notification Center Implementation
+
+The notification center is implemented as a Sheet-based component that provides real-time notification management:
+
+### Architecture
+- **Component**: `NotificationCenter.tsx` using Radix UI Sheet primitives
+- **Integration**: Embedded in dashboard header with Bell icon trigger
+- **Data**: Currently uses mock data structure for development and testing
+
+### Features
+- **Date Grouping**: Notifications organized by "今日", "昨日", and specific dates
+- **Type System**: 5 distinct notification types with appropriate icons and styling
+- **Interactive Management**: Mark as read, delete individual notifications, batch operations
+- **Visual Indicators**: Unread count badges with pulse animation, read/unread styling
+- **Responsive Design**: Mobile-optimized Sheet panel with proper touch interactions
+
+### Notification Types
+```typescript
+type NotificationType = "reminder" | "new-anime" | "daily-achievement" | "new-book" | "game-reset"
+```
+
+### Integration Points
+- **Authentication**: Fully integrated with auth system and route protection
+- **Settings**: Connected to notification settings page for preference management
+- **State Management**: Uses React local state with plans for API integration
+- **Design System**: Consistent with glassmorphism theme and shadcn/ui components
+
+### Development Notes
+- Mock data structure is ready for backend API integration
+- Sheet component provides excellent UX for mobile and desktop
+- Notification persistence and real-time updates are planned for Phase 3
+- All Japanese language UI text is properly implemented and tested

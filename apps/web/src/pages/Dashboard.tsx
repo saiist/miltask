@@ -13,7 +13,6 @@ import {
   Calendar,
   Settings,
   User,
-  Bell,
   LogOut,
   BarChart3,
   Activity,
@@ -26,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AddTaskModal from "@/components/modals/add-task-modal"
 import AddAnimeModal from "@/components/modals/add-anime-modal"
 import AddGameModal from "@/components/modals/add-game-modal"
+import NotificationCenter from "@/components/NotificationCenter"
 import type { TaskCreateInput, Task } from "@otaku-secretary/api-client"
 
 // アニメとゲームの型定義（ローカル管理用）
@@ -391,9 +391,7 @@ export default function Dashboard() {
 
             <div className="flex items-center gap-2">
               <span className="text-white/70 text-sm mr-4">ようこそ、{user?.username || user?.email}さん</span>
-              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
-                <Bell className="w-4 h-4" />
-              </Button>
+              <NotificationCenter />
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -817,6 +815,7 @@ export default function Dashboard() {
         onOpenChange={setShowAddGameModal}
         onSubmit={addGame}
       />
+
     </div>
   )
 }
