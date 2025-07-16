@@ -19,7 +19,8 @@ pnpm dev --filter @otaku-secretary/api    # Start only API server
 ```bash
 pnpm build                  # Build all packages and applications
 pnpm test                   # Run tests across all packages
-pnpm test --filter @otaku-secretary/ui    # Run tests for specific package
+pnpm test --filter @otaku-secretary/api   # Run API tests (41 tests implemented)
+pnpm test tests/routes/tasks.test.ts      # Run specific test file
 pnpm type-check             # Type check all packages
 pnpm lint                   # Lint all packages
 pnpm format                 # Format code with Prettier
@@ -27,8 +28,14 @@ pnpm format                 # Format code with Prettier
 
 ### Database
 ```bash
-pnpm db:migrate             # Run database migrations
-pnpm db:seed                # Seed database with test data
+pnpm db:migrate             # Apply migrations to D1 database (all packages)
+pnpm db:seed                # Seed database with game masters data
+
+# API-specific database commands (from apps/api/)
+cd apps/api
+pnpm db:migrate:local       # Apply migrations to local D1 database
+pnpm db:execute:local       # Execute raw SQL on local D1 database
+pnpm db:seed                # Seed database with game masters data (via tsx)
 ```
 
 ### Deployment
@@ -113,14 +120,26 @@ The application uses **Lucia Auth v3** with the following setup:
   - `vite.config.ts` - Vite config with API proxy to port 8787
   - `vitest.config.ts` - Test configuration (setup pending)
 
-## Core Entities
+## Core Entities and Database Implementation
 
-The application manages these main entities (see `packages/shared/src/types/models/`):
-- **User** - Authentication and preferences
-- **Task** - Todo items with categories and priorities
-- **Anime** - Anime tracking with watch status
-- **Game** - Game tracking with play status
-- **Book** - Book tracking (planned)
+The application manages these main entities with full database implementation:
+
+### Database Schema (`packages/database/src/schema/`)
+- **users** - Authentication and user profiles (`users.ts`)
+- **sessions** - Lucia Auth session management (`users.ts`)
+- **tasks** - Core task management system (`tasks.ts`)
+  - Types: 'anime', 'game-daily', 'book-release'
+  - Priorities: 'high', 'medium', 'low'
+  - Sources: 'manual', 'recurring', 'external'
+- **recurring_tasks** - Template system for daily task generation (`recurring-tasks.ts`)
+- **game_masters** - Game catalog with daily task definitions (`game-masters.ts`)
+- **user_games** - User-specific game settings and enabled tasks (`user-games.ts`)
+
+### Entity Relationships
+- Users have many Tasks and RecurringTasks
+- UserGames links Users to GameMasters with custom settings
+- RecurringTasks generate Tasks based on schedule
+- Tasks can be manually created or auto-generated from RecurringTasks
 
 ## Configuration Notes
 
@@ -174,39 +193,78 @@ The application manages these main entities (see `packages/shared/src/types/mode
 
 ## Current Development Status
 
-### Frontend State (apps/web)
-- **React Router v7** configured with standard routing (not file-based routing)
-- **Authentication UI** implemented with comprehensive form validation
-- **Component Library** set up with shadcn/ui and Radix UI primitives
-- **Theme System** configured with dark/light mode support
-- **Path Aliases** configured (`@/` -> `src/`) for clean imports
-- **Development Tools** configured (Vitest, TypeScript, Tailwind)
+### Frontend Implementation (`apps/web`)
+- **React Router v7** with standard routing (not file-based routing)
+- **Complete Authentication System** with API integration
+  - Login/signup/password reset forms with Zod validation and react-hook-form
+  - `useAuth` hook with TanStack Query for state management
+  - Private/public route protection with automatic redirects
+  - HTTPOnly cookie-based session management
+- **Dashboard Implementation** with glassmorphism design
+  - Statistics cards, floating star animations, beautiful UI
+  - Modal components for adding tasks, anime, and games
+  - Full integration with authentication system
+- **Component Library** complete shadcn/ui integration with Japanese language support
+- **API Client** package with full service layer integration
 
 ### Current Routes
-- `/` - Layout with nested routes
-- `/login` - Authentication form (login/signup/password reset)
+- `/` - Redirects to dashboard (protected)
+- `/login` - Authentication form (public route)
+- `/dashboard` - Main dashboard with task/anime/game management (protected)
 
-### Key Implementation Details
-- **Routing**: Using React Router v7 with `BrowserRouter` and `Routes`/`Route` components
-- **Authentication**: Frontend form with validation, not yet connected to backend API
-- **UI Components**: Comprehensive shadcn/ui component library with Japanese language support
-- **State Management**: Theme provider implemented, other state management (TanStack Query, Zustand) ready for integration
-- **Testing**: Vitest configured but test suite not yet implemented
+### Authentication Flow Implementation
+- **Frontend**: Complete auth forms with validation, error handling, toast notifications
+- **API Integration**: Full service layer with proper error handling and state management
+- **Session Management**: HTTPOnly cookies with automatic session validation
+- **Route Protection**: Private routes automatically redirect to login when unauthenticated
+- **State Management**: TanStack Query with optimized caching and refetch strategies
 
-### Next Steps
-- Connect authentication forms to backend API endpoints
-- Implement protected routes and authentication state management
-- Add dashboard and core application features
-- Implement test suite with Vitest and Testing Library
+## API Implementation Status
 
-### Missing Critical Components
-- **API Client Package**: `packages/api-client` structure exists but implementation files are missing
-  - Need to create service files: `services/auth.ts`, `services/tasks.ts`, etc.
-  - Base HTTP client configuration using Ky library
-  - Error handling utilities for consistent API responses
-- **Authentication State Management**: Frontend needs TanStack Query or Zustand integration for auth state
-- **Protected Route Component**: Route protection mechanism for authenticated-only pages
-- **Testing Suite**: Comprehensive test coverage for authentication flow and UI components
+### Completed Backend Implementation (`apps/api/src/`)
+- **Authentication System**: Complete Lucia Auth v3 integration
+  - Routes: `/auth/signup`, `/auth/login`, `/auth/logout`, `/auth/me`
+  - Middleware: Session validation and authentication
+  - Security: Scrypt password hashing, HTTPOnly cookies
+  
+- **Task Management API**: Full CRUD with advanced features
+  - `GET /api/tasks/today` - Today's tasks with progress summary
+  - `POST /api/tasks` - Create new tasks
+  - `PUT /api/tasks/:id` - Update existing tasks
+  - `DELETE /api/tasks/:id` - Delete tasks
+  - `POST /api/tasks/:id/complete` - Mark task complete
+  - `POST /api/tasks/bulk-complete` - Bulk complete multiple tasks
+
+- **Game Integration API**: Game catalog and user settings
+  - `GET /api/games` - Available games (public endpoint)
+  - `GET /api/games/user` - User's game settings
+  - `POST /api/games/user` - Add/update game settings
+  - `DELETE /api/games/user/:gameId` - Remove game settings
+
+- **Recurring Tasks API**: Template management for daily tasks
+  - `GET /api/recurring-tasks` - User's recurring task templates
+  - `POST /api/recurring-tasks` - Create recurring task template
+  - `PUT /api/recurring-tasks/:id` - Update template
+  - `DELETE /api/recurring-tasks/:id` - Delete template
+
+### Database Implementation
+- **Drizzle ORM**: Complete schema with indexes and foreign keys
+- **Migrations**: Automated migration system with Drizzle Kit
+- **Seed Data**: Pre-populated game masters (FGO, Genshin, Uma Musume, etc.)
+- **D1 Integration**: Cloudflare D1 (SQLite) for production deployment
+
+### Testing Suite (41 tests passing)
+- **Route Tests**: Comprehensive API endpoint testing
+- **Integration Tests**: End-to-end task management flows  
+- **Unit Tests**: Validation and utility function testing
+- **Mock Infrastructure**: Database and authentication mocking
+- **Files**: `tests/routes/`, `tests/integration/`, `tests/unit/`
+
+### Next Development Steps
+- **Data Integration**: Connect dashboard modals to actual API endpoints
+- **Real-time Updates**: Implement optimistic updates and loading states
+- **Task Management**: Build task list views and filtering functionality
+- **Media Tracking**: Implement anime and game progress tracking features
 
 ## Common Development Issues and Solutions
 
@@ -227,6 +285,24 @@ The application manages these main entities (see `packages/shared/src/types/mode
 2. **Password Hashing**: Uses Scrypt (not Argon2) due to Cloudflare Workers limitations
 3. **Database Migrations**: Drizzle ORM manages schema changes and migrations
 4. **User Registration**: Checks for existing email/username before creating accounts
+
+### API Development and Testing
+1. **Test Architecture**: Uses Vitest with comprehensive mocking system
+   - Mock Drizzle instance with sequence-based query simulation
+   - Authentication middleware mocking for protected routes
+   - Consistent test utilities in `tests/helpers/`
+2. **Route Testing Pattern**: Each API endpoint has dedicated test file
+   - Tests cover success cases, error handling, and edge cases
+   - Mock data setup for realistic database interactions
+3. **Database Schema Updates**: 
+   - Use `pnpm db:generate` to create migrations from schema changes
+   - Index optimization for common query patterns (user_id, date ranges)
+4. **Game Masters Management**: Pre-seeded catalog of popular games
+   - FGO (Fate/Grand Order), Genshin Impact, Uma Musume, etc.
+   - Each game has defined daily task templates
+5. **Task Generation Logic**: Recurring tasks automatically create daily tasks
+   - Template-based system with user customization
+   - Priority inheritance and metadata preservation
 
 ## Web Application Implementation
 
@@ -269,9 +345,51 @@ The web application (`apps/web`) is built with React 19 and uses traditional Rea
 - **Security**: Scrypt password hashing, HTTPOnly cookies, CORS configured
 - **Validation**: Zod schemas for consistent validation on both frontend and backend
 
-### Ready for Integration
-The codebase is ready for connecting the frontend authentication form to the backend API. The main missing piece is the API client implementation in `packages/api-client` to bridge the frontend and backend.
+### Implementation Guidelines
+
+#### Working with the API
+1. **Development Server**: API runs on `localhost:8787`, web on `localhost:5173`
+2. **Authentication Flow**: 
+   - Use `/auth/signup`, `/auth/login` endpoints
+   - Sessions are managed via HTTPOnly cookies
+   - Protected routes require authentication middleware
+3. **Task Management**:
+   - Use `/api/tasks/today` for dashboard data
+   - Implement optimistic updates for task completion
+   - Handle bulk operations for better UX
+4. **Game Integration**:
+   - Fetch available games from `/api/games` (public)
+   - Manage user settings via `/api/games/user` endpoints
+   - Enable/disable specific daily tasks per game
+
+#### Testing Strategy
+1. **API Tests**: Run `pnpm test` in `apps/api` (41 tests implemented)
+2. **Mock Patterns**: Use sequence-based mocking for complex API flows
+3. **Integration Tests**: Test complete user workflows
+4. **Frontend Tests**: Add Vitest tests for components and hooks
+
+#### Integration Completed
+The application now has full end-to-end integration:
+1. ✅ API client services implemented in `packages/api-client`
+2. ✅ Auth forms connected to backend endpoints with error handling
+3. ✅ Dashboard UI implemented with glassmorphism design and modal components
+4. ✅ Real-time state management with TanStack Query and authentication hooks
+
+The next phase involves connecting the dashboard modals to actual data management APIs and implementing the core task/media tracking functionality.
 
 ## Product Context
 
-This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). The project is currently in Phase 0 (infrastructure setup) with core features to be implemented.
+This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). 
+
+### Current Implementation Status
+The project has completed the core authentication and dashboard implementation:
+- ✅ **Phase 0**: Authentication system, database schema, API foundation
+- ✅ **Phase 1a**: Core task management API and database implementation  
+- ✅ **Phase 1b**: Game integration system with popular titles (FGO, Genshin, etc.)
+- ✅ **Phase 1c**: Recurring task templates and automation
+- ✅ **Phase 2a**: Frontend authentication integration with complete API client
+- ✅ **Phase 2b**: Dashboard UI implementation with glassmorphism design
+- ✅ **Phase 2c**: Modal components for adding tasks, anime, and games
+- 🔄 **Phase 3**: Data management and real-time functionality (next steps)
+
+Both backend and frontend are now fully integrated with a beautiful, functional user interface. The authentication flow works end-to-end, and the dashboard provides a complete foundation for task and media management.

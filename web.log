@@ -50,3 +50,31 @@
 @otaku-secretary/web:dev: 10:17:49 AM [vite] server restarted.
 @otaku-secretary/web:dev: 10:20:03 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
 @otaku-secretary/web:dev: 10:20:27 AM [vite] (client) hmr update /src/contexts/query-client.tsx, /src/index.css
+@otaku-secretary/web:dev: 10:39:51 AM [vite] (client) hmr update /src/index.css
+@otaku-secretary/web:dev: 10:43:22 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:06:33 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:06:35 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:14:44 AM [vite] (client) hmr update /src/pages/Dashboard.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:16:05 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:16:51 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:15 AM [vite] (client) hmr update /src/contexts/query-client.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/components/auth-form.tsx, /src/index.css
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
+@otaku-secretary/web:dev: 11:17:24 AM [vite] (client) hmr update /src/index.css, /src/components/PrivateRoute.tsx, /src/components/auth-form.tsx, /src/pages/Dashboard.tsx
