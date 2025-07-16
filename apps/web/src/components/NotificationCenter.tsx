@@ -159,7 +159,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
               すべて既読にする
             </Button>
           </SheetTitle>
-          <SheetDescription className="text-white/70">あなたのオタク活動に関する最新情報です。</SheetDescription>
+          <SheetDescription className="text-white/70">あなたの趣味ライフに関する最新情報です。</SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="flex-1 pr-4">

@@ -253,7 +253,7 @@ export default function StatisticsDashboard() {
           <BarChart2 className="w-7 h-7 text-purple-300" />
           統計ダッシュボード
         </h2>
-        <p className="text-white/70 mb-8">あなたのオタク活動の傾向を分析しましょう。</p>
+        <p className="text-white/70 mb-8">あなたの趣味ライフの傾向を分析しましょう。</p>
 
         {/* 全体タスク完了率 */}
         <Card className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl mb-8">
