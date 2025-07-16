@@ -4,6 +4,8 @@ import { useNavigate } from "react-router"
 import { useAuth } from "@/hooks/use-auth"
 import { useTodayTasks, useCreateTask, useCompleteTask } from "@/hooks/use-tasks"
 import { useGames, useUserGames, useAddUserGame } from "@/hooks/use-games"
+import { useStatistics } from "@/hooks/use-statistics"
+import { useAnimeList, useCreateAnime } from "@/hooks/use-anime"
 import {
   CheckCircle2,
   Circle,
@@ -28,18 +30,9 @@ import AddTaskModal from "@/components/modals/add-task-modal"
 import AddAnimeModal from "@/components/modals/add-anime-modal"
 import AddGameFromListModal from "@/components/modals/add-game-from-list-modal"
 import NotificationCenter from "@/components/NotificationCenter"
-import type { TaskCreateInput, Task } from "@otaku-secretary/api-client"
+import type { TaskCreateInput, Task, AnimeCreateInput, Anime } from "@otaku-secretary/api-client"
 
-// アニメとゲームの型定義（ローカル管理用）
-
-interface Anime {
-  id: string
-  title: string
-  status: "watching" | "completed" | "planned"
-  currentEpisode: number
-  totalEpisodes?: number
-  rating?: number
-}
+// ゲームの型定義（ローカル管理用）
 
 interface Game {
   id: string
@@ -53,19 +46,25 @@ interface Game {
 const initialAnimes: Anime[] = [
   {
     id: "1",
+    userId: "user1",
     title: "SPY×FAMILY",
     status: "watching",
     currentEpisode: 24,
     totalEpisodes: 25,
     rating: 5,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: "2",
+    userId: "user1",
     title: "葬送のフリーレン",
     status: "watching",
     currentEpisode: 16,
     totalEpisodes: 28,
     rating: 5,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
 ]
 
@@ -231,7 +230,9 @@ const AnimeCard = ({ anime }: { anime: Anime }) => (
     <div className="flex items-center justify-between mb-2">
       <h3 className="font-medium text-white/90">{anime.title}</h3>
       <Badge className="text-xs px-2 py-1 text-blue-300 bg-blue-500/20">
-        {anime.status === "watching" ? "視聴中" : anime.status === "completed" ? "完了" : "予定"}
+        {anime.status === "watching" ? "視聴中" : 
+         anime.status === "completed" ? "完了" : 
+         anime.status === "dropped" ? "中断" : "予定"}
       </Badge>
     </div>
     <div className="flex items-center gap-4 text-sm text-white/60">
@@ -273,30 +274,40 @@ export default function Dashboard() {
   
   // ゲーム関連のフック
   const { data: availableGames, isLoading: isLoadingGames } = useGames()
-  const { data: userGames, isLoading: isLoadingUserGames } = useUserGames()
+  const { data: userGames } = useUserGames()
   const addUserGameMutation = useAddUserGame()
   
-  const [animes, setAnimes] = useState<Anime[]>(initialAnimes)
-  const [games, setGames] = useState<Game[]>(initialGames)
+  // 統計データのフック
+  const { data: statisticsData } = useStatistics()
+  
+  // アニメ関連のフック
+  const { data: animeList } = useAnimeList()
+  const createAnimeMutation = useCreateAnime()
+  
+  const [animes] = useState<Anime[]>(initialAnimes)
+  const [games] = useState<Game[]>(initialGames)
   const [activeTab, setActiveTab] = useState("overview")
   const [taskFilter, setTaskFilter] = useState<"all" | "completed" | "pending">("all")
-  const [animeFilter, setAnimeFilter] = useState<"all" | "watching" | "completed" | "planned">("all")
+  const [animeFilter, setAnimeFilter] = useState<"all" | "watching" | "completed" | "planned" | "dropped">("all")
   const [gameFilter, setGameFilter] = useState<"all" | "playing" | "completed" | "planned">("all")
   const [showAddTaskModal, setShowAddTaskModal] = useState(false)
   const [showAddAnimeModal, setShowAddAnimeModal] = useState(false)
   const [showAddGameModal, setShowAddGameModal] = useState(false)
 
   // APIデータとモックデータを結合した統計
+  const currentAnimeList = animeList || animes
   const stats = {
-    completedTasks: todayTasksData?.summary.completed || 0,
-    activeTasks: todayTasksData?.summary.total ? (todayTasksData.summary.total - todayTasksData.summary.completed) : 0,
-    watchingAnime: animes.filter(anime => anime.status === "watching").length,
-    playingGames: userGames?.filter(ug => ug.active).length || 0,
-    weeklyChange: "+12%", // TODO: 週次統計APIから取得
-    overdueCount: 2, // TODO: 期限切れタスクAPIから取得
+    completedTasks: statisticsData?.today.completed || todayTasksData?.summary.completed || 0,
+    activeTasks: statisticsData?.today.total 
+      ? (statisticsData.today.total - statisticsData.today.completed)
+      : (todayTasksData?.summary.total ? (todayTasksData.summary.total - todayTasksData.summary.completed) : 0),
+    watchingAnime: currentAnimeList.filter(anime => anime.status === "watching").length,
+    playingGames: statisticsData?.games.active || userGames?.filter(ug => ug.active).length || 0,
+    weeklyChange: statisticsData?.week.trend || "+0%",
+    overdueCount: 0, // TODO: 期限切れタスクAPIから取得
     currentSeason: "2024冬",
     completedGames: 0, // TODO: 完了済みゲームAPIから取得
-    completionRate: todayTasksData?.summary.completionRate || 0
+    completionRate: statisticsData?.today.completionRate || todayTasksData?.summary.completionRate || 0
   }
 
   const handleLogout = () => {
@@ -331,15 +342,18 @@ export default function Dashboard() {
   }
 
   const addAnime = async (animeData: any) => {
-    const anime: Anime = {
-      id: Date.now().toString(),
+    const animeInput: AnimeCreateInput = {
       title: animeData.title,
-      status: "watching", // デフォルト値
-      currentEpisode: animeData.userStatus?.episodesWatched || 0,
-      totalEpisodes: animeData.episodes,
-      rating: animeData.userStatus?.score,
+      malId: animeData.mal_id,
+      imageUrl: animeData.image_url,
+      status: animeData.status || "planned",
+      currentEpisode: animeData.currentEpisode || 0,
+      totalEpisodes: animeData.episodes || animeData.totalEpisodes,
+      rating: animeData.rating,
+      notes: animeData.notes,
     }
-    setAnimes((prev) => [...prev, anime])
+    
+    await createAnimeMutation.mutateAsync(animeInput)
   }
 
   const addGame = async (gameId: string) => {
@@ -354,10 +368,11 @@ export default function Dashboard() {
     return true
   }) || []
 
-  const filteredAnimes = animes.filter((anime) => {
+  const filteredAnimes = currentAnimeList.filter((anime) => {
     if (animeFilter === "watching") return anime.status === "watching"
     if (animeFilter === "completed") return anime.status === "completed"
     if (animeFilter === "planned") return anime.status === "planned"
+    if (animeFilter === "dropped") return anime.status === "dropped"
     return true
   })
 
@@ -369,7 +384,7 @@ export default function Dashboard() {
   })
 
   return (
-    <div className="min-h-screen relative flex flex-col">
+    <div className="min-h-screen relative">
       {/* 幻想的な背景 */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
       <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
@@ -379,7 +394,7 @@ export default function Dashboard() {
       <FloatingStars />
 
       {/* ヘッダー */}
-      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10 flex-shrink-0">
+      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -426,7 +441,7 @@ export default function Dashboard() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="flex-1 overflow-y-auto relative z-10">
+      <main className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ページタイトル */}
         <div className="mb-8">
@@ -701,6 +716,18 @@ export default function Dashboard() {
                     }`}
                   >
                     視聴予定
+                  </Button>
+                  <Button
+                    onClick={() => setAnimeFilter("dropped")}
+                    variant="ghost"
+                    size="sm"
+                    className={`px-4 py-2 rounded-full text-sm ${
+                      animeFilter === "dropped"
+                        ? "bg-white/20 text-white"
+                        : "bg-white/10 text-white/70 hover:bg-white/15"
+                    }`}
+                  >
+                    中断
                   </Button>
                 </div>
                 {filteredAnimes.length > 0 ? (

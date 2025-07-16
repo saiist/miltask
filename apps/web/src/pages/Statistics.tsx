@@ -4,6 +4,7 @@ import { BarChart2, CheckCircle2, Tv, Gamepad2, BookOpen, TrendingUp, Circle } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import Star from "@/components/ui/star"
+import { useStatistics } from "@/hooks/use-statistics"
 
 // タスクの型定義
 interface Task {
@@ -199,10 +200,13 @@ const FloatingStars = () => {
 }
 
 export default function StatisticsDashboard() {
-  // 統計データの計算
-  const totalTasks = mockTasks.length
-  const completedTasks = mockTasks.filter((task) => task.completed).length
-  const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  const { data: statisticsData } = useStatistics()
+  
+  // 統計データの計算（APIデータ優先、なければモックデータ）
+  const totalTasks = statisticsData?.today.total || mockTasks.length
+  const completedTasks = statisticsData?.today.completed || mockTasks.filter((task) => task.completed).length
+  const taskCompletionRate = statisticsData?.today.completionRate || 
+    (totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0)
 
   const animeCounts = {
     watching: mockAnimes.filter((anime) => anime.status === "watching").length,
@@ -218,7 +222,11 @@ export default function StatisticsDashboard() {
     total: mockGames.length,
   }
 
-  const taskTypeCounts = mockTasks.reduce(
+  const taskTypeCounts = statisticsData ? {
+    "anime": statisticsData.byType.anime.completed,
+    "game-daily": statisticsData.byType.gameTasks.completed,
+    "book-release": statisticsData.byType.bookReleases.completed
+  } : mockTasks.reduce(
     (acc, task) => {
       if (task.completed) {
         acc[task.type] = (acc[task.type] || 0) + 1
@@ -231,9 +239,9 @@ export default function StatisticsDashboard() {
   return (
     <div className="min-h-screen relative flex flex-col">
       {/* 幻想的な背景 */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950 -z-10" />
-      <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60 -z-10" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/15 via-transparent to-transparent -z-10" />
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
+      <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/15 via-transparent to-transparent" />
 
       {/* 浮遊する星 */}
       <FloatingStars />

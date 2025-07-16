@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { gamesService, type Game, type UserGame } from '@otaku-secretary/api-client';
+import { gamesService, type UserGame } from '@otaku-secretary/api-client';
 import { toast } from '@/hooks/use-toast';
 
 // 利用可能なゲーム一覧を取得

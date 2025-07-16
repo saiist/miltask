@@ -4,6 +4,8 @@ import authRoutes from '../auth/routes'
 import tasksRoutes from './tasks'
 import gamesRoutes from './games'
 import recurringTasksRoutes from './recurring-tasks'
+import statisticsRoutes from './statistics'
+import animeRoutes from './anime'
 import { authMiddleware } from '../auth/middleware'
 import type { User, Session } from 'lucia'
 
@@ -46,6 +48,13 @@ app.route('/api/recurring-tasks', recurringTasksRoutes)
 
 // Game routes (some public, some protected)
 app.route('/api/games', gamesRoutes)
+
+// Statistics routes
+app.use('/api/statistics/*', authMiddleware)
+app.route('/api/statistics', statisticsRoutes)
+
+// Anime routes
+app.route('/api/anime', animeRoutes)
 
 // 404 handler
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

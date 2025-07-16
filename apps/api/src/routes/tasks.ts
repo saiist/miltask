@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { tasks } from '@otaku-secretary/database';
 import type { Env } from './index';
@@ -54,8 +54,8 @@ function getTodayRange() {
   endOfDay.setHours(23, 59, 59, 999);
   
   return {
-    start: Math.floor(startOfDay.getTime() / 1000),
-    end: Math.floor(endOfDay.getTime() / 1000),
+    start: startOfDay,
+    end: endOfDay,
   };
 }
 
@@ -76,7 +76,8 @@ app.get('/today', async (c) => {
       .where(
         and(
           eq(tasks.userId, user.id),
-          sql`${tasks.createdAt} >= ${start} AND ${tasks.createdAt} <= ${end}`
+          gte(tasks.createdAt, start),
+          lte(tasks.createdAt, end)
         )
       )
       .orderBy(
@@ -144,11 +145,9 @@ app.get('/', zValidator('query', taskQuerySchema), async (c) => {
       const endOfDay = new Date(targetDate);
       endOfDay.setHours(23, 59, 59, 999);
       
-      const start = Math.floor(startOfDay.getTime() / 1000);
-      const end = Math.floor(endOfDay.getTime() / 1000);
-      
       conditions.push(
-        sql`${tasks.createdAt} >= ${start} AND ${tasks.createdAt} <= ${end}`
+        gte(tasks.createdAt, startOfDay),
+        lte(tasks.createdAt, endOfDay)
       );
     }
 
@@ -207,8 +206,8 @@ app.post('/', zValidator('json', createTaskSchema), async (c) => {
       source: 'manual' as const,
       externalId: null,
       metadata: null,
-      createdAt: Math.floor(now.getTime() / 1000),
-      updatedAt: Math.floor(now.getTime() / 1000),
+      createdAt: now,
+      updatedAt: now,
     };
 
     await db.insert(tasks).values(newTask);
@@ -250,7 +249,7 @@ app.put('/:id', zValidator('json', updateTaskSchema), async (c) => {
     const deadline = data.deadline ? new Date(data.deadline) : undefined;
 
     const updateData: any = {
-      updatedAt: Math.floor(now.getTime() / 1000),
+      updatedAt: now,
     };
 
     if (data.title !== undefined) updateData.title = data.title;
@@ -341,7 +340,7 @@ app.post('/:id/complete', async (c) => {
       .update(tasks)
       .set({
         completed: true,
-        updatedAt: Math.floor(now.getTime() / 1000),
+        updatedAt: now,
       })
       .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
 
@@ -382,7 +381,7 @@ app.post('/bulk-complete', zValidator('json', z.object({
       .update(tasks)
       .set({
         completed: true,
-        updatedAt: Math.floor(now.getTime() / 1000),
+        updatedAt: now,
       })
       .where(
         and(
