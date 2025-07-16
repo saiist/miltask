@@ -1,120 +1,52 @@
 import { apiClient } from '../utils/api-client';
-import type { 
-  Game,
-  GameListEntry,
-  GameListResponse,
-  ApiResponse
-} from '@otaku-secretary/shared';
 
-export interface GameSearchQuery {
-  query: string;
-  platform?: string;
-  genre?: string;
-  year?: number;
-  limit?: number;
+export interface Game {
+  id: string;
+  name: string;
+  platform: string;
+  iconUrl?: string;
+  dailyTasks: any[];
 }
 
-export interface GameListQuery {
-  page?: number;
-  limit?: number;
-  status?: 'playing' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_play';
-  platform?: string;
-  sort?: 'title' | 'score' | 'date_added' | 'date_updated';
-  order?: 'asc' | 'desc';
-}
-
-export interface GameListEntryInput {
+export interface UserGame {
   gameId: string;
-  status: 'playing' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_play';
-  score?: number;
-  hoursPlayed?: number;
-  notes?: string;
-  startDate?: Date;
-  finishDate?: Date;
-  platform?: string;
+  active: boolean;
+  settings: any;
+  createdAt: string;
+  updatedAt: string;
+  game: Game;
 }
 
 export class GamesService {
   /**
-   * ゲーム検索
+   * 利用可能ゲーム一覧取得（認証不要）
    */
-  async searchGames(query: GameSearchQuery): Promise<ApiResponse<Game[]>> {
-    const params = new URLSearchParams();
-    
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined) {
-        params.append(key, String(value));
-      }
-    });
-    
-    return apiClient.get<Game[]>(`games/search?${params.toString()}`);
+  async getGames(): Promise<{ games: Game[] }> {
+    return apiClient.get('api/games');
   }
 
   /**
-   * ゲーム詳細取得
+   * ユーザーのゲーム設定取得
    */
-  async getGame(id: string): Promise<ApiResponse<Game>> {
-    return apiClient.get<Game>(`games/${id}`);
+  async getUserGames(): Promise<{ userGames: UserGame[] }> {
+    return apiClient.get('api/games/user');
   }
 
   /**
-   * ユーザーのゲームリスト取得
+   * ゲーム設定追加/更新
    */
-  async getUserGameList(query?: GameListQuery): Promise<ApiResponse<GameListResponse>> {
-    const params = new URLSearchParams();
-    
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, String(value));
-        }
-      });
-    }
-    
-    const url = params.toString() ? `games/list?${params.toString()}` : 'games/list';
-    return apiClient.get<GameListResponse>(url);
+  async addUserGame(data: {
+    gameId: string;
+    settings?: any;
+  }): Promise<UserGame> {
+    return apiClient.post('api/games/user', data);
   }
 
   /**
-   * ゲームをリストに追加
+   * ゲーム設定削除
    */
-  async addToList(entry: GameListEntryInput): Promise<ApiResponse<GameListEntry>> {
-    return apiClient.post<GameListEntry>('games/list', entry);
-  }
-
-  /**
-   * ゲームリストエントリ更新
-   */
-  async updateListEntry(gameId: string, updates: Partial<GameListEntryInput>): Promise<ApiResponse<GameListEntry>> {
-    return apiClient.put<GameListEntry>(`games/list/${gameId}`, updates);
-  }
-
-  /**
-   * ゲームをリストから削除
-   */
-  async removeFromList(gameId: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<void>(`games/list/${gameId}`);
-  }
-
-  /**
-   * 人気ゲーム取得
-   */
-  async getPopularGames(limit: number = 20): Promise<ApiResponse<Game[]>> {
-    return apiClient.get<Game[]>(`games/popular?limit=${limit}`);
-  }
-
-  /**
-   * 新作ゲーム取得
-   */
-  async getNewReleases(limit: number = 20): Promise<ApiResponse<Game[]>> {
-    return apiClient.get<Game[]>(`games/new-releases?limit=${limit}`);
-  }
-
-  /**
-   * おすすめゲーム取得
-   */
-  async getRecommendations(limit: number = 10): Promise<ApiResponse<Game[]>> {
-    return apiClient.get<Game[]>(`games/recommendations?limit=${limit}`);
+  async removeUserGame(gameId: string): Promise<{ message: string }> {
+    return apiClient.delete(`api/games/user/${gameId}`);
   }
 }
 

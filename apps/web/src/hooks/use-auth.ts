@@ -26,15 +26,15 @@ export function useAuth() {
   const { data: user, isLoading: isUserLoading, error: userError } = useQuery({
     queryKey: authKeys.user(),
     queryFn: async () => {
-      const response = await authService.getCurrentUser();
-      if (!response.success) {
+      try {
+        return await authService.getCurrentUser();
+      } catch (error: any) {
         // 401の場合は null を返す（未認証状態）
-        if (response.error?.code === 'UNAUTHORIZED') {
+        if (error?.status === 401 || error?.message?.includes('UNAUTHORIZED')) {
           return null;
         }
-        throw new Error(response.error?.message || '認証エラー');
+        throw error;
       }
-      return response.data;
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5分間キャッシュ
@@ -49,15 +49,11 @@ export function useAuth() {
   // ログイン処理
   const loginMutation = useMutation({
     mutationFn: async (credentials: AuthLoginInput) => {
-      const response = await authService.login(credentials);
-      if (!response.success) {
-        throw new Error(response.error?.message || 'ログインに失敗しました');
-      }
-      return response.data;
+      return await authService.login(credentials);
     },
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       // ユーザー情報をキャッシュに保存
-      queryClient.setQueryData(authKeys.user(), data?.user);
+      queryClient.setQueryData(authKeys.user(), response.user);
       
       toast({
         title: 'ログイン成功',
@@ -79,15 +75,11 @@ export function useAuth() {
   // ユーザー登録処理
   const registerMutation = useMutation({
     mutationFn: async (userData: AuthRegisterInput) => {
-      const response = await authService.register(userData);
-      if (!response.success) {
-        throw new Error(response.error?.message || 'アカウント作成に失敗しました');
-      }
-      return response.data;
+      return await authService.register(userData);
     },
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       // ユーザー情報をキャッシュに保存
-      queryClient.setQueryData(authKeys.user(), data?.user);
+      queryClient.setQueryData(authKeys.user(), response.user);
       
       toast({
         title: 'アカウント作成完了',
@@ -109,10 +101,7 @@ export function useAuth() {
   // ログアウト処理
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await authService.logout();
-      if (!response.success) {
-        throw new Error(response.error?.message || 'ログアウトに失敗しました');
-      }
+      return await authService.logout();
     },
     onSuccess: () => {
       // キャッシュをクリア

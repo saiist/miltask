@@ -94,3 +94,19 @@
 .hover-glow:hover {
   box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
 }
+
+/* カードのホバーエフェクト */
+.stat-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* フォーカス状態の明確化 */
+.input:focus-visible,
+.select-trigger:focus-visible,
+.textarea:focus-visible,
+.button:focus-visible,
+.checkbox:focus-visible {
+  outline: 2px solid #9333ea; /* 紫色のアウトライン */
+  outline-offset: 2px;
+}

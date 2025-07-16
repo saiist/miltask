@@ -1,37 +1,67 @@
 import { apiClient } from '../utils/api-client';
-import type { 
-  Task,
-  TaskListResponse,
-  ApiResponse
-} from '@otaku-secretary/shared';
 
 export interface TaskCreateInput {
+  type: 'anime' | 'game-daily' | 'book-release';
   title: string;
   description?: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate?: Date;
-  tags?: string[];
+  priority?: 'high' | 'medium' | 'low';
+  deadline?: string; // ISO datetime string
 }
 
-export interface TaskUpdateInput extends Partial<TaskCreateInput> {
+export interface TaskUpdateInput {
+  title?: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low';
+  deadline?: string;
   completed?: boolean;
 }
 
 export interface TasksQuery {
-  page?: number;
-  limit?: number;
-  category?: string;
-  priority?: 'low' | 'medium' | 'high';
+  type?: 'anime' | 'game-daily' | 'book-release';
   completed?: boolean;
-  search?: string;
+  date?: string; // YYYY-MM-DD format
+  limit?: number;
+  offset?: number;
+}
+
+export interface TodayTasksResponse {
+  tasks: Task[];
+  summary: {
+    total: number;
+    completed: number;
+    completionRate: number;
+  };
+}
+
+export interface Task {
+  id: string;
+  userId: string;
+  type: 'anime' | 'game-daily' | 'book-release';
+  title: string;
+  description: string | null;
+  priority: 'high' | 'medium' | 'low';
+  deadline: string | null;
+  completed: boolean;
+  source: 'manual' | 'recurring' | 'external';
+  externalId: string | null;
+  metadata: any;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export class TasksService {
   /**
-   * タスク一覧取得
+   * 今日のタスク取得
    */
-  async getTasks(query?: TasksQuery): Promise<ApiResponse<TaskListResponse>> {
+  async getTodayTasks(): Promise<TodayTasksResponse> {
+    const response = await apiClient.get('api/tasks/today');
+    return response;
+  }
+
+  /**
+   * タスク一覧取得（フィルタ可）
+   */
+  async getTasks(query?: TasksQuery): Promise<{ tasks: Task[]; pagination: any }> {
     const params = new URLSearchParams();
     
     if (query) {
@@ -42,57 +72,49 @@ export class TasksService {
       });
     }
     
-    const url = params.toString() ? `tasks?${params.toString()}` : 'tasks';
-    return apiClient.get<TaskListResponse>(url);
-  }
-
-  /**
-   * タスク詳細取得
-   */
-  async getTask(id: string): Promise<ApiResponse<Task>> {
-    return apiClient.get<Task>(`tasks/${id}`);
+    const url = params.toString() ? `api/tasks?${params.toString()}` : 'api/tasks';
+    const response = await apiClient.get(url);
+    return response;
   }
 
   /**
    * タスク作成
    */
-  async createTask(taskData: TaskCreateInput): Promise<ApiResponse<Task>> {
-    return apiClient.post<Task>('tasks', taskData);
+  async createTask(taskData: TaskCreateInput): Promise<Task> {
+    const response = await apiClient.post('api/tasks', taskData);
+    return response;
   }
 
   /**
    * タスク更新
    */
-  async updateTask(id: string, taskData: TaskUpdateInput): Promise<ApiResponse<Task>> {
-    return apiClient.put<Task>(`tasks/${id}`, taskData);
+  async updateTask(id: string, taskData: TaskUpdateInput): Promise<Task> {
+    const response = await apiClient.put(`api/tasks/${id}`, taskData);
+    return response;
   }
 
   /**
    * タスク削除
    */
-  async deleteTask(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<void>(`tasks/${id}`);
+  async deleteTask(id: string): Promise<{ message: string }> {
+    const response = await apiClient.delete(`api/tasks/${id}`);
+    return response;
   }
 
   /**
-   * タスク完了/未完了切り替え
+   * タスク完了
    */
-  async toggleTask(id: string): Promise<ApiResponse<Task>> {
-    return apiClient.patch<Task>(`tasks/${id}/toggle`);
+  async completeTask(id: string): Promise<Task> {
+    const response = await apiClient.post(`api/tasks/${id}/complete`);
+    return response;
   }
 
   /**
-   * 複数タスクの一括操作
+   * 複数タスクの一括完了
    */
-  async bulkUpdateTasks(ids: string[], updates: TaskUpdateInput): Promise<ApiResponse<void>> {
-    return apiClient.patch<void>('tasks/bulk', { ids, updates });
-  }
-
-  /**
-   * タスクカテゴリ一覧取得
-   */
-  async getCategories(): Promise<ApiResponse<string[]>> {
-    return apiClient.get<string[]>('tasks/categories');
+  async bulkCompleteTasks(taskIds: string[]): Promise<{ tasks: Task[]; count: number }> {
+    const response = await apiClient.post('api/tasks/bulk-complete', { taskIds });
+    return response;
   }
 }
 

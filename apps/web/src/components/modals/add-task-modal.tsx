@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { CalendarIcon, Plus, Star, CheckCircle2, Clock, AlertTriangle, Zap } from "lucide-react"
+import { CalendarIcon, Plus, Star, CheckCircle2, Clock, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,18 +11,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 
 const taskFormSchema = z.object({
-  title: z.string().min(1, "タイトルは必須です").max(100, "タイトルは100文字以内で入力してください"),
+  title: z.string().min(1, "タイトルは必須です").max(200, "タイトルは200文字以内で入力してください"),
   description: z.string().optional(),
-  category: z.enum(["anime", "game", "book", "personal", "work", "other"] as const),
-  priority: z.enum(["low", "medium", "high", "urgent"] as const),
-  dueDate: z.date().optional(),
-  tags: z.array(z.string()).default([]),
+  type: z.enum(["anime", "game-daily", "book-release"] as const),
+  priority: z.enum(["low", "medium", "high"] as const),
+  deadline: z.date().optional(),
 })
 
 type TaskFormValues = z.infer<typeof taskFormSchema>
@@ -33,24 +31,19 @@ interface AddTaskModalProps {
   onSubmit: (task: TaskFormValues) => Promise<void>
 }
 
-const categoryOptions = [
+const typeOptions = [
   { value: "anime", label: "アニメ", icon: "📺" },
-  { value: "game", label: "ゲーム", icon: "🎮" },
-  { value: "book", label: "書籍", icon: "📚" },
-  { value: "personal", label: "個人", icon: "👤" },
-  { value: "work", label: "仕事", icon: "💼" },
-  { value: "other", label: "その他", icon: "📝" },
+  { value: "game-daily", label: "ゲームデイリー", icon: "🎮" },
+  { value: "book-release", label: "新刊チェック", icon: "📚" },
 ] as const
 
 const priorityOptions = [
   { value: "low", label: "低", icon: CheckCircle2, color: "from-green-400 to-emerald-400" },
   { value: "medium", label: "中", icon: Clock, color: "from-yellow-400 to-orange-400" },
   { value: "high", label: "高", icon: AlertTriangle, color: "from-orange-400 to-red-400" },
-  { value: "urgent", label: "緊急", icon: Zap, color: "from-red-400 to-pink-400" },
 ] as const
 
 export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskModalProps) {
-  const [tagInput, setTagInput] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<TaskFormValues>({
@@ -58,13 +51,10 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
     defaultValues: {
       title: "",
       description: "",
-      category: "personal",
+      type: "anime",
       priority: "medium",
-      tags: [],
     },
   })
-
-  const tags = form.watch("tags")
 
   const handleSubmit = async (data: TaskFormValues) => {
     setIsSubmitting(true)
@@ -79,23 +69,6 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
     }
   }
 
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      form.setValue("tags", [...tags, tagInput.trim()])
-      setTagInput("")
-    }
-  }
-
-  const removeTag = (tagToRemove: string) => {
-    form.setValue("tags", tags.filter(tag => tag !== tagToRemove))
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      addTag()
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -165,11 +138,11 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="type"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-white/90">
-                        カテゴリ
+                        タイプ
                       </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -178,7 +151,7 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="backdrop-blur-xl bg-slate-900/90 border-white/20 rounded-xl">
-                          {categoryOptions.map((option) => (
+                          {typeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value} className="text-white hover:bg-white/10">
                               {option.icon} {option.label}
                             </SelectItem>
@@ -226,7 +199,7 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
 
               <FormField
                 control={form.control}
-                name="dueDate"
+                name="deadline"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-white/90">
@@ -266,50 +239,6 @@ export default function AddTaskModal({ open, onOpenChange, onSubmit }: AddTaskMo
                   </FormItem>
                 )}
               />
-
-              {/* タグ入力 */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-white/90">
-                  タグ (オプション)
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="タグを入力..."
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="backdrop-blur-sm bg-white/10 border-white/30 text-white placeholder:text-white/50 rounded-xl focus:bg-white/20 focus:border-pink-300 transition-all duration-300"
-                  />
-                  <Button
-                    type="button"
-                    onClick={addTag}
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 rounded-xl"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="backdrop-blur-sm bg-white/20 text-white border border-white/30 rounded-lg px-2 py-1 text-xs"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="ml-1 text-white/70 hover:text-white"
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               <div className="flex gap-3 pt-2">
                 <Button
