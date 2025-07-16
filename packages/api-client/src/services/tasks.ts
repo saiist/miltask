@@ -54,7 +54,7 @@ export class TasksService {
    * 今日のタスク取得
    */
   async getTodayTasks(): Promise<TodayTasksResponse> {
-    const response = await apiClient.get('api/tasks/today');
+    const response = await apiClient.get('/api/tasks/today');
     return response;
   }
 
@@ -72,7 +72,7 @@ export class TasksService {
       });
     }
     
-    const url = params.toString() ? `api/tasks?${params.toString()}` : 'api/tasks';
+    const url = params.toString() ? `/api/tasks?${params.toString()}` : '/api/tasks';
     const response = await apiClient.get(url);
     return response;
   }
@@ -81,7 +81,7 @@ export class TasksService {
    * タスク作成
    */
   async createTask(taskData: TaskCreateInput): Promise<Task> {
-    const response = await apiClient.post('api/tasks', taskData);
+    const response = await apiClient.post('/api/tasks', taskData);
     return response;
   }
 
@@ -89,7 +89,7 @@ export class TasksService {
    * タスク更新
    */
   async updateTask(id: string, taskData: TaskUpdateInput): Promise<Task> {
-    const response = await apiClient.put(`api/tasks/${id}`, taskData);
+    const response = await apiClient.put(`/api/tasks/${id}`, taskData);
     return response;
   }
 
@@ -97,7 +97,7 @@ export class TasksService {
    * タスク削除
    */
   async deleteTask(id: string): Promise<{ message: string }> {
-    const response = await apiClient.delete(`api/tasks/${id}`);
+    const response = await apiClient.delete(`/api/tasks/${id}`);
     return response;
   }
 
@@ -105,7 +105,7 @@ export class TasksService {
    * タスク完了
    */
   async completeTask(id: string): Promise<Task> {
-    const response = await apiClient.post(`api/tasks/${id}/complete`);
+    const response = await apiClient.post(`/api/tasks/${id}/complete`);
     return response;
   }
 
@@ -113,7 +113,7 @@ export class TasksService {
    * 複数タスクの一括完了
    */
   async bulkCompleteTasks(taskIds: string[]): Promise<{ tasks: Task[]; count: number }> {
-    const response = await apiClient.post('api/tasks/bulk-complete', { taskIds });
+    const response = await apiClient.post('/api/tasks/bulk-complete', { taskIds });
     return response;
   }
 }

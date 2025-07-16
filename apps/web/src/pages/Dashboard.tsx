@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 import { useAuth } from "@/hooks/use-auth"
 import { useTodayTasks, useCreateTask, useCompleteTask } from "@/hooks/use-tasks"
+import { useGames, useUserGames, useAddUserGame } from "@/hooks/use-games"
 import {
   CheckCircle2,
   Circle,
@@ -17,6 +18,7 @@ import {
   BarChart3,
   Activity,
   Plus,
+  BarChart2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,7 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AddTaskModal from "@/components/modals/add-task-modal"
 import AddAnimeModal from "@/components/modals/add-anime-modal"
-import AddGameModal from "@/components/modals/add-game-modal"
+import AddGameFromListModal from "@/components/modals/add-game-from-list-modal"
 import NotificationCenter from "@/components/NotificationCenter"
 import type { TaskCreateInput, Task } from "@otaku-secretary/api-client"
 
@@ -269,6 +271,11 @@ export default function Dashboard() {
   const createTaskMutation = useCreateTask()
   const completeTaskMutation = useCompleteTask()
   
+  // ゲーム関連のフック
+  const { data: availableGames, isLoading: isLoadingGames } = useGames()
+  const { data: userGames, isLoading: isLoadingUserGames } = useUserGames()
+  const addUserGameMutation = useAddUserGame()
+  
   const [animes, setAnimes] = useState<Anime[]>(initialAnimes)
   const [games, setGames] = useState<Game[]>(initialGames)
   const [activeTab, setActiveTab] = useState("overview")
@@ -284,11 +291,11 @@ export default function Dashboard() {
     completedTasks: todayTasksData?.summary.completed || 0,
     activeTasks: todayTasksData?.summary.total ? (todayTasksData.summary.total - todayTasksData.summary.completed) : 0,
     watchingAnime: animes.filter(anime => anime.status === "watching").length,
-    playingGames: games.filter(game => game.status === "playing").length,
+    playingGames: userGames?.filter(ug => ug.active).length || 0,
     weeklyChange: "+12%", // TODO: 週次統計APIから取得
     overdueCount: 2, // TODO: 期限切れタスクAPIから取得
     currentSeason: "2024冬",
-    completedGames: games.filter(game => game.status === "completed").length,
+    completedGames: 0, // TODO: 完了済みゲームAPIから取得
     completionRate: todayTasksData?.summary.completionRate || 0
   }
 
@@ -335,16 +342,9 @@ export default function Dashboard() {
     setAnimes((prev) => [...prev, anime])
   }
 
-  const addGame = async (gameData: any) => {
-    const game: Game = {
-      id: Date.now().toString(),
-      title: gameData.title,
-      platform: gameData.platform?.[0] || "PC", // 最初のプラットフォームを使用
-      status: gameData.userStatus?.status === "playing" ? "playing" : 
-              gameData.userStatus?.status === "completed" ? "completed" : "planned",
-      hoursPlayed: gameData.userStatus?.hoursPlayed,
-    }
-    setGames((prev) => [...prev, game])
+  const addGame = async (gameId: string) => {
+    // ゲームをユーザーのリストに追加
+    await addUserGameMutation.mutateAsync({ gameId })
   }
 
   // フィルターされたデータ
@@ -369,7 +369,7 @@ export default function Dashboard() {
   })
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative flex flex-col">
       {/* 幻想的な背景 */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
       <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
@@ -379,7 +379,7 @@ export default function Dashboard() {
       <FloatingStars />
 
       {/* ヘッダー */}
-      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10">
+      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -392,6 +392,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <span className="text-white/70 text-sm mr-4">ようこそ、{user?.username || user?.email}さん</span>
               <NotificationCenter />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/statistics")}
+                className="text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <BarChart2 className="w-4 h-4" />
+              </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -418,7 +426,8 @@ export default function Dashboard() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 overflow-y-auto relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ページタイトル */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">ダッシュボード</h2>
@@ -797,6 +806,7 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </main>
 
       {/* モーダル */}
@@ -810,10 +820,12 @@ export default function Dashboard() {
         onOpenChange={setShowAddAnimeModal}
         onSubmit={addAnime}
       />
-      <AddGameModal
+      <AddGameFromListModal
         open={showAddGameModal}
         onOpenChange={setShowAddGameModal}
-        onSubmit={addGame}
+        games={availableGames || []}
+        onSelectGame={addGame}
+        isLoading={isLoadingGames}
       />
 
     </div>

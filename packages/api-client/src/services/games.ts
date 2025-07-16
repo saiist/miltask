@@ -22,14 +22,14 @@ export class GamesService {
    * 利用可能ゲーム一覧取得（認証不要）
    */
   async getGames(): Promise<{ games: Game[] }> {
-    return apiClient.get('api/games');
+    return apiClient.get('/api/games');
   }
 
   /**
    * ユーザーのゲーム設定取得
    */
   async getUserGames(): Promise<{ userGames: UserGame[] }> {
-    return apiClient.get('api/games/user');
+    return apiClient.get('/api/games/user');
   }
 
   /**
@@ -39,7 +39,7 @@ export class GamesService {
     gameId: string;
     settings?: any;
   }): Promise<UserGame> {
-    return apiClient.post('api/games/user', data);
+    return apiClient.post('/api/games/user', data);
   }
 
   /**

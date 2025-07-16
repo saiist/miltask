@@ -25,7 +25,6 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
   }
 
   // 認証されていない場合はログインページへリダイレクト
-  // 現在のURLを保存してログイン後に戻れるようにする
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -58,7 +57,6 @@ export function PublicRoute({ children }: PublicRouteProps) {
   }
 
   // 認証されている場合はダッシュボードへリダイレクト
-  // ログイン前のURLがある場合はそちらへ
   if (isAuthenticated) {
     const from = location.state?.from?.pathname || '/dashboard';
     return <Navigate to={from} replace />;

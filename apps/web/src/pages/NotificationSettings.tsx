@@ -75,14 +75,14 @@ export default function NotificationSettings() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative flex flex-col">
       {/* 幻想的な背景 - ダッシュボードと同じ */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
       <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/15 via-transparent to-transparent" />
 
       {/* ヘッダー */}
-      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10">
+      <header className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/10 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -104,7 +104,8 @@ export default function NotificationSettings() {
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto relative z-10 space-y-8 p-4 sm:p-6 lg:p-8">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto relative z-10 space-y-8 p-4 sm:p-6 lg:p-8">
         <div className="space-y-2">
           <h2 className="text-3xl font-bold text-white flex items-center gap-3">
             <Settings className="w-7 h-7 text-purple-300" />
@@ -310,6 +311,7 @@ export default function NotificationSettings() {
             <Save className="w-4 h-4 mr-2" />
             変更を保存
           </Button>
+        </div>
         </div>
       </div>
     </div>

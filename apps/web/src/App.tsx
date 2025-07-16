@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router'
+import { Routes, Route, Navigate } from 'react-router'
 import { ThemeProvider } from './components/theme-provider'
 import { QueryProvider } from './contexts/query-client'
 import { PublicRoute, PrivateRoute } from './components/PrivateRoute'
@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import AuthForm from "@/components/auth-form"
 import Dashboard from "./pages/Dashboard"
 import NotificationSettings from "./pages/NotificationSettings"
+import Statistics from "./pages/Statistics"
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <Routes>
           <Route path="/" element={<Layout />}>
+            {/* デフォルトルート - ダッシュボードへリダイレクト */}
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            
             {/* パブリックルート */}
             <Route path="login" element={
               <PublicRoute>
@@ -34,10 +38,9 @@ function App() {
               </PrivateRoute>
             } />
             
-            {/* デフォルトルート */}
-            <Route index element={
+            <Route path="statistics" element={
               <PrivateRoute>
-                <Dashboard />
+                <Statistics />
               </PrivateRoute>
             } />
           </Route>

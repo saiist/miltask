@@ -23,14 +23,20 @@ export function useAuth() {
   const { toast } = useToast();
 
   // 現在のユーザー情報を取得
-  const { data: user, isLoading: isUserLoading, error: userError } = useQuery({
+  const { 
+    data: user, 
+    isLoading: isUserLoading,
+    error: userError
+  } = useQuery({
     queryKey: authKeys.user(),
     queryFn: async () => {
       try {
-        return await authService.getCurrentUser();
+        const response = await authService.getCurrentUser();
+        // APIレスポンスからユーザーデータを取得
+        return response.data || response;
       } catch (error: any) {
         // 401の場合は null を返す（未認証状態）
-        if (error?.status === 401 || error?.message?.includes('UNAUTHORIZED')) {
+        if (error?.response?.status === 401) {
           return null;
         }
         throw error;
@@ -38,22 +44,40 @@ export function useAuth() {
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5分間キャッシュ
-    refetchOnWindowFocus: false, // ウィンドウフォーカス時の再取得を無効化
+    gcTime: 10 * 60 * 1000, // 10分間ガベージコレクションを遅延
+    refetchOnWindowFocus: false,
     refetchOnMount: false, // マウント時の再取得を無効化
+    refetchOnReconnect: false, // 再接続時の再取得を無効化
   });
 
   // ログイン状態
-  const isAuthenticated = !!user && !userError;
+  const isAuthenticated = !!user && user !== null;
   const isLoading = isUserLoading;
+
+  // デバッグログ
+  console.log('[useAuth] State:', {
+    user: user ? `User(${user.id})` : null,
+    isAuthenticated,
+    isLoading,
+    error: userError,
+    timestamp: new Date().toISOString()
+  });
 
   // ログイン処理
   const loginMutation = useMutation({
     mutationFn: async (credentials: AuthLoginInput) => {
       return await authService.login(credentials);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
+      console.log('[Login] Success:', response);
+      
+      // レスポンス構造を確認してユーザー情報を取得
+      const user = response.data.user;
+      console.log('[Login] User data:', user);
+      
       // ユーザー情報をキャッシュに保存
-      queryClient.setQueryData(authKeys.user(), response.user);
+      queryClient.setQueryData(authKeys.user(), user);
+      console.log('[Login] Cache updated');
       
       toast({
         title: 'ログイン成功',
@@ -61,7 +85,11 @@ export function useAuth() {
       });
       
       // ダッシュボードへリダイレクト
-      navigate('/dashboard');
+      console.log('[Login] Navigating to dashboard');
+      // キャッシュ更新が反映されるまで少し待つ
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
@@ -77,9 +105,12 @@ export function useAuth() {
     mutationFn: async (userData: AuthRegisterInput) => {
       return await authService.register(userData);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
+      // レスポンス構造を確認してユーザー情報を取得
+      const user = response.data.user;
+      
       // ユーザー情報をキャッシュに保存
-      queryClient.setQueryData(authKeys.user(), response.user);
+      queryClient.setQueryData(authKeys.user(), user);
       
       toast({
         title: 'アカウント作成完了',
