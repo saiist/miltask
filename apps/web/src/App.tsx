@@ -6,6 +6,7 @@ import Layout from './components/Layout'
 import { Toaster } from "@/components/ui/toaster"
 import AuthForm from "@/components/auth-form"
 import Dashboard from "./pages/Dashboard"
+import NotificationSettings from "./pages/NotificationSettings"
 
 function App() {
   return (
@@ -24,6 +25,12 @@ function App() {
             <Route path="dashboard" element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            } />
+            
+            <Route path="notifications" element={
+              <PrivateRoute>
+                <NotificationSettings />
               </PrivateRoute>
             } />
             

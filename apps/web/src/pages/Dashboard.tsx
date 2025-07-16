@@ -1,5 +1,6 @@
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router"
 import { useAuth } from "@/hooks/use-auth"
 import { useTodayTasks, useCreateTask, useCompleteTask } from "@/hooks/use-tasks"
 import {
@@ -262,6 +263,7 @@ const GameCard = ({ game }: { game: Game }) => (
 )
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { user, logout, isLoggingOut } = useAuth()
   const { data: todayTasksData, isLoading: isLoadingTasks } = useTodayTasks()
   const createTaskMutation = useCreateTask()
@@ -392,7 +394,12 @@ export default function Dashboard() {
               <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
                 <Bell className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/notifications")}
+                className="text-white/70 hover:text-white hover:bg-white/10"
+              >
                 <Settings className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
