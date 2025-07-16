@@ -13,6 +13,8 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist node_modules",
     "db:migrate": "wrangler d1 migrations apply otaku-secretary-db",
+    "db:migrate:local": "wrangler d1 migrations apply otaku-secretary-db --local",
+    "db:execute:local": "wrangler d1 execute otaku-secretary-db --local",
     "db:seed": "tsx seeds/index.ts"
   },
   "dependencies": {

@@ -275,8 +275,3 @@ The codebase is ready for connecting the frontend authentication form to the bac
 ## Product Context
 
 This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). The project is currently in Phase 0 (infrastructure setup) with core features to be implemented.
-
-
-## Product Context
-
-This is a Japanese-focused productivity application targeting otaku culture enthusiasts. The comprehensive product specification is available in `docs/otaku-secretary-docs.md` (in Japanese), covering user personas, technical requirements, and business model. The authentication system implementation guide is in `docs/auth-system-guide.md` (in Japanese). The project is currently in Phase 0 (infrastructure setup) with core features to be implemented.

@@ -5,7 +5,7 @@ export const APP_VERSION = '0.0.1'
 
 export const APP_DESCRIPTION = 'アニメ、ゲーム、書籍管理とタスク管理を統合したオタク向け生産性アプリ'
 
-export const API_BASE_URL = process.env.VITE_API_URL || '/api'
+export const API_BASE_URL = '/api'
 
 export const DEFAULT_PAGE_SIZE = 20
 export const MAX_PAGE_SIZE = 100

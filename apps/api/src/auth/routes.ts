@@ -54,11 +54,13 @@ authRoutes.post('/signup', zValidator('json', signupSchema), async (c) => {
     
     return c.json({
       success: true,
-      user: {
-        id: userId,
-        email,
-        username,
-      },
+      data: {
+        user: {
+          id: userId,
+          email,
+          username,
+        }
+      }
     })
   } catch (error) {
     console.error('Signup error:', error)
@@ -96,11 +98,13 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     
     return c.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+        }
+      }
     })
   } catch (error) {
     console.error('Login error:', error)
@@ -137,7 +141,13 @@ authRoutes.get('/me', async (c) => {
     const sessionId = lucia.readSessionCookie(c.req.header('Cookie') ?? '')
     
     if (!sessionId) {
-      return c.json({ error: 'セッションが見つかりません' }, 401)
+      return c.json({ 
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'セッションが見つかりません'
+        }
+      }, 401)
     }
     
     const { session, user } = await lucia.validateSession(sessionId)
@@ -145,15 +155,22 @@ authRoutes.get('/me', async (c) => {
     if (!session) {
       const sessionCookie = lucia.createBlankSessionCookie()
       c.header('Set-Cookie', sessionCookie.serialize())
-      return c.json({ error: 'セッションが無効です' }, 401)
+      return c.json({ 
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'セッションが無効です'
+        }
+      }, 401)
     }
     
     return c.json({
-      user: {
+      success: true,
+      data: {
         id: user.id,
         email: user.email,
         username: user.username,
-      },
+      }
     })
   } catch (error) {
     console.error('Get user error:', error)

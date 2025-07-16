@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import authRoutes from '../auth/routes'
+import tasksRoutes from './tasks'
+import gamesRoutes from './games'
+import recurringTasksRoutes from './recurring-tasks'
 import { authMiddleware } from '../auth/middleware'
 import type { User, Session } from 'lucia'
 
@@ -36,24 +39,13 @@ app.get('/health', (c) => c.json({
 app.route('/auth', authRoutes)
 
 // Protected API routes
-app.get('/api/tasks', authMiddleware, async (c) => {
-  const user = c.get('user')
-  if (!user) {
-    return c.json({ error: '認証が必要です' }, 401)
-  }
-  
-  return c.json({
-    tasks: [
-      {
-        id: '1',
-        title: 'サンプルタスク',
-        type: 'anime',
-        completed: false,
-        userId: user.id
-      }
-    ]
-  })
-})
+app.use('/api/tasks/*', authMiddleware)
+app.route('/api/tasks', tasksRoutes)
+app.use('/api/recurring-tasks/*', authMiddleware)
+app.route('/api/recurring-tasks', recurringTasksRoutes)
+
+// Game routes (some public, some protected)
+app.route('/api/games', gamesRoutes)
 
 // 404 handler
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

@@ -18,7 +18,6 @@ export function initializeLucia(env: Env) {
     },
     getUserAttributes: (attributes) => {
       return {
-        id: attributes.id,
         email: attributes.email,
         username: attributes.username,
       }
@@ -27,7 +26,6 @@ export function initializeLucia(env: Env) {
 }
 
 export interface DatabaseUserAttributes {
-  id: string
   email: string
   username: string
 }
