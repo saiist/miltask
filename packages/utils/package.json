@@ -1,5 +1,5 @@
 {
-  "name": "@otaku-secretary/utils",
+  "name": "@miltask/utils",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,12 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
-    "@otaku-secretary/shared": "workspace:*",
+    "@miltask/shared": "workspace:*",
     "date-fns": "^3.0.6",
     "date-fns-tz": "^2.0.0"
   },
   "devDependencies": {
-    "@otaku-secretary/config": "workspace:*",
+    "@miltask/config": "workspace:*",
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",

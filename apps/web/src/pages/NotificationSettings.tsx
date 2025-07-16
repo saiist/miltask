@@ -98,7 +98,7 @@ export default function NotificationSettings() {
               <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-sm">
                 👩‍💼
               </div>
-              <h1 className="text-xl font-bold text-white">オタク秘書</h1>
+              <h1 className="text-xl font-bold text-white">ミルタス</h1>
             </div>
           </div>
         </div>

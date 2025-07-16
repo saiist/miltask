@@ -84,7 +84,7 @@ const FloatingStars = () => {
   )
 }
 
-// オタク秘書アイコンコンポーネント
+// ミルタスアイコンコンポーネント
 const OtakuSecretaryIcon = ({ className = "" }: { className?: string }) => (
   <div className={`relative ${className}`}>
     <div className="w-20 h-20 bg-gradient-to-br from-purple-400/20 to-indigo-500/20 rounded-full flex items-center justify-center shadow-2xl border border-white/20 backdrop-blur-sm">
@@ -204,7 +204,7 @@ export default function AuthForm() {
   const getDescription = () => {
     switch (mode) {
       case "login":
-        return "オタク秘書があなたの帰りをお待ちしています"
+        return "ミルタスがあなたの帰りをお待ちしています"
       case "signup":
         return "新しい体験への第一歩を踏み出しましょう"
       case "reset":
@@ -231,7 +231,7 @@ export default function AuthForm() {
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl" />
 
           <CardHeader className="relative space-y-4 text-center pt-8">
-            {/* オタク秘書アイコン */}
+            {/* ミルタスアイコン */}
             <div className="flex justify-center">
               <OtakuSecretaryIcon />
             </div>
@@ -240,7 +240,7 @@ export default function AuthForm() {
               <CardTitle className="text-2xl font-bold tracking-tight text-white drop-shadow-lg">
                 {mode === "login" ? (
                   <div className="flex items-center justify-center gap-2">
-                    オタク秘書 <Heart className="w-5 h-5 text-pink-300 animate-pulse" />
+                    ミルタス <Heart className="w-5 h-5 text-pink-300 animate-pulse" />
                   </div>
                 ) : (
                   getTitle()

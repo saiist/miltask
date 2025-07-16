@@ -1,5 +1,5 @@
 {
-  "name": "@otaku-secretary/database",
+  "name": "@miltask/database",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,12 +14,12 @@
     "clean": "rm -rf dist node_modules migrations"
   },
   "dependencies": {
-    "@otaku-secretary/shared": "workspace:*",
+    "@miltask/shared": "workspace:*",
     "drizzle-orm": "^0.29.1",
     "@cloudflare/workers-types": "^4.20231218.0"
   },
   "devDependencies": {
-    "@otaku-secretary/config": "workspace:*",
+    "@miltask/config": "workspace:*",
     "@types/better-sqlite3": "^7.6.8",
     "better-sqlite3": "^9.2.2",
     "drizzle-kit": "^0.20.9",

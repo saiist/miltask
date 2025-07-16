@@ -1,14 +1,14 @@
-name = "otaku-secretary-api"
+name = "miltask-api"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [env.development]
-name = "otaku-secretary-api-dev"
+name = "miltask-api-dev"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "otaku-secretary-db"
+database_name = "miltask-db"
 database_id = "00000000-0000-0000-0000-000000000000"
 
 [[kv_namespaces]]

@@ -1,5 +1,5 @@
 {
-  "name": "@otaku-secretary/config",
+  "name": "@miltask/config",
   "version": "0.0.0",
   "private": true,
   "type": "module",

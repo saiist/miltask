@@ -1,4 +1,4 @@
-export const APP_NAME = 'オタク秘書'
+export const APP_NAME = 'ミルタス'
 export const APP_NAME_EN = 'Otaku Secretary'
 
 export const APP_VERSION = '0.0.1'

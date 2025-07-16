@@ -1,5 +1,5 @@
 {
-  "name": "otaku-secretary",
+  "name": "miltask",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,7 @@
     "release": "turbo build && changeset publish",
     "deploy": "turbo deploy",
     "db:migrate": "turbo db:migrate",
-    "db:seed": "pnpm --filter @otaku-secretary/database seed",
+    "db:seed": "pnpm --filter @miltask/database seed",
     "prepare": "husky install"
   },
   "devDependencies": {

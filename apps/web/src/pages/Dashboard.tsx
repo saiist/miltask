@@ -401,7 +401,7 @@ export default function Dashboard() {
               <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-sm">
                 👩‍💼
               </div>
-              <h1 className="text-xl font-bold text-white">オタク秘書</h1>
+              <h1 className="text-xl font-bold text-white">ミルタス</h1>
             </div>
 
             <div className="flex items-center gap-2">
@@ -446,7 +446,7 @@ export default function Dashboard() {
         {/* ページタイトル */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">ダッシュボード</h2>
-          <p className="text-white/70">あなたのオタク活動を効率的に管理しましょう</p>
+          <p className="text-white/70">あなたの趣味ライフを効率的に管理しましょう</p>
         </div>
 
         {/* 統計カード */}
