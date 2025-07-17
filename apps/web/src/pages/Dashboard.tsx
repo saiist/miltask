@@ -21,6 +21,7 @@ import {
   Activity,
   Plus,
   BarChart2,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -190,7 +191,7 @@ const EmptyState = ({
 )
 
 // タスクカードコンポーネント
-const TaskCard = ({ task, onToggle }: { task: Task; onToggle: (id: string) => void }) => {
+const TaskCard = ({ task, onToggle, isCompleting }: { task: Task; onToggle: (id: string) => void; isCompleting?: boolean }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
@@ -207,8 +208,18 @@ const TaskCard = ({ task, onToggle }: { task: Task; onToggle: (id: string) => vo
   return (
     <div className="group p-4 backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl transition-all duration-300 hover:bg-white/10 hover:border-white/20">
       <div className="flex items-start gap-3">
-        <button onClick={() => onToggle(task.id)} className="mt-1 text-white/70 hover:text-white transition-colors">
-          {task.completed ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Circle className="w-5 h-5" />}
+        <button 
+          onClick={() => onToggle(task.id)} 
+          className="mt-1 text-white/70 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isCompleting}
+        >
+          {isCompleting ? (
+            <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+          ) : task.completed ? (
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+          ) : (
+            <Circle className="w-5 h-5" />
+          )}
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">
@@ -268,12 +279,12 @@ const GameCard = ({ game }: { game: Game }) => (
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user, logout, isLoggingOut } = useAuth()
-  const { data: todayTasksData, isLoading: isLoadingTasks } = useTodayTasks()
+  const { data: todayTasksData, isLoading: isLoadingTasks, error: tasksError } = useTodayTasks()
   const createTaskMutation = useCreateTask()
   const completeTaskMutation = useCompleteTask()
   
   // ゲーム関連のフック
-  const { data: availableGames, isLoading: isLoadingGames } = useGames()
+  const { data: availableGames, isLoading: isLoadingGames, error: gamesError } = useGames()
   const { data: userGames } = useUserGames()
   const addUserGameMutation = useAddUserGame()
   
@@ -281,7 +292,7 @@ export default function Dashboard() {
   const { data: statisticsData } = useStatistics()
   
   // アニメ関連のフック
-  const { data: animeList } = useAnimeList()
+  const { data: animeList, error: animeError } = useAnimeList()
   const createAnimeMutation = useCreateAnime()
   
   const [animes] = useState<Anime[]>(initialAnimes)
@@ -382,6 +393,57 @@ export default function Dashboard() {
     if (gameFilter === "planned") return game.status === "planned"
     return true
   })
+
+  // 初回ローディング時のスケルトン
+  if (isLoadingTasks && !todayTasksData) {
+    return (
+      <div className="min-h-screen relative">
+        {/* 幻想的な背景 */}
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
+        <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/15 via-transparent to-transparent" />
+        
+        <FloatingStars />
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+            <p className="text-white/70 text-lg">データを読み込んでいます...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // エラー時の表示
+  if (tasksError || animeError || gamesError) {
+    return (
+      <div className="min-h-screen relative">
+        {/* 幻想的な背景 */}
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-950" />
+        <div className="fixed inset-0 bg-gradient-to-tr from-violet-900/60 via-purple-800/40 to-slate-900/60" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/15 via-transparent to-transparent" />
+        
+        <FloatingStars />
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 text-center max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">エラーが発生しました</h2>
+            <p className="text-white/70 mb-6">データの読み込みに失敗しました。もう一度お試しください。</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white border-0"
+            >
+              再読み込み
+            </Button>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -637,7 +699,12 @@ export default function Dashboard() {
                 {filteredTasks.length > 0 ? (
                   <div className="space-y-3">
                     {filteredTasks.map((task) => (
-                      <TaskCard key={task.id} task={task} onToggle={toggleTask} />
+                      <TaskCard 
+                        key={task.id} 
+                        task={task} 
+                        onToggle={toggleTask}
+                        isCompleting={completeTaskMutation.isPending && completeTaskMutation.variables === task.id}
+                      />
                     ))}
                   </div>
                 ) : (

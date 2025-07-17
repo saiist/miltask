@@ -30,12 +30,21 @@ export default function AddGameFromListModal({
     game.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleAddGame = async () => {
-    if (selectedGameId) {
-      await onSelectGame(selectedGameId)
-      setSelectedGameId(null)
-      setSearchQuery("")
-      onOpenChange(false)
+    if (selectedGameId && !isSubmitting) {
+      setIsSubmitting(true)
+      try {
+        await onSelectGame(selectedGameId)
+        setSelectedGameId(null)
+        setSearchQuery("")
+        onOpenChange(false)
+      } catch (error) {
+        console.error('Failed to add game:', error)
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -124,11 +133,20 @@ export default function AddGameFromListModal({
             </Button>
             <Button
               onClick={handleAddGame}
-              disabled={!selectedGameId || isLoading}
+              disabled={!selectedGameId || isLoading || isSubmitting}
               className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              追加
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  追加中...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  追加
+                </>
+              )}
             </Button>
           </div>
         </div>
